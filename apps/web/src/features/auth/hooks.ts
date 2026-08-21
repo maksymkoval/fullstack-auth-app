@@ -1,0 +1,68 @@
+/**
+ * React Query — manages "server state" (data that actually lives on the backend).
+ *
+ * The idea: instead of manually juggling useState + useEffect + loading + error
+ * in every component, we describe a QUERY once as a hook, and React Query gives
+ * us the cache, isLoading / isError states, deduping identical requests,
+ * refetching and invalidation for free. The React Query cache becomes our
+ * "source of truth" for the current user — so a separate AuthContext is no longer needed.
+ */
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { authApi } from "./api";
+import { tokenStorage } from "../../lib/api";
+import type { AuthResult } from "./types";
+
+// Cache keys collected in one place so we don't typo a string somewhere.
+export const authKeys = {
+  me: ["auth", "me"] as const,
+};
+
+/**
+ * "Who am I?" — the main query. Only runs if a token exists.
+ * Its result (user) is the source of truth for the whole app.
+ */
+export function useMe() {
+  return useQuery({
+    queryKey: authKeys.me,
+    queryFn: authApi.me,
+    enabled: !!tokenStorage.get(), // no token — don't bother asking the backend
+    retry: false, // no point retrying a 401
+    staleTime: Infinity, // "who am I" data doesn't go stale on its own
+  });
+}
+
+/** Login mutation. onSuccess puts the user straight into the cache — no extra refetch. */
+export function useLogin() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: authApi.login,
+    onSuccess: (result: AuthResult) => {
+      tokenStorage.set(result.accessToken);
+      queryClient.setQueryData(authKeys.me, result.user);
+    },
+  });
+}
+
+/** Register mutation — same logic as login. */
+export function useRegister() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: authApi.register,
+    onSuccess: (result: AuthResult) => {
+      tokenStorage.set(result.accessToken);
+      queryClient.setQueryData(authKeys.me, result.user);
+    },
+  });
+}
+
+/** Logout: clear the token, clear the whole React Query cache, and navigate to /login. */
+export function useLogout() {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  return () => {
+    tokenStorage.clear();
+    queryClient.clear();
+    navigate("/login");
+  };
+}

@@ -1,0 +1,9 @@
+/* Tailwind's three directives: base (style reset), components, utilities (classes like p-4, flex). */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply min-h-screen flex items-center justify-center bg-slate-100 p-4;
+  font-family: system-ui, -apple-system, sans-serif;
+}
