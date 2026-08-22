@@ -1,6 +1,10 @@
-import { NestFactory } from '@nestjs/core';
+import './instrument';
+
+import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
+import { SentryExceptionFilter } from './common/filters/sentry-exception.filter';
 
 /**
  * Application entry point (composition root).
@@ -11,8 +15,11 @@ import { AppModule } from './app.module';
  * sharing the same schemas apps/web uses for form validation.
  */
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
   const config = app.get(ConfigService);
+
+  app.useLogger(app.get(Logger));
+  app.useGlobalFilters(new SentryExceptionFilter(app.get(HttpAdapterHost)));
 
   // Allow the frontend to call the API from a different origin.
   app.enableCors({
