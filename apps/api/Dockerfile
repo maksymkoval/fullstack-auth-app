@@ -3,7 +3,10 @@
 
 FROM node:20-alpine AS base
 RUN apk add --no-cache libc6-compat openssl
-RUN corepack enable
+# Explicitly pinned: relying on corepack to read "packageManager" from
+# package.json is flaky on some build hosts — it can silently fetch
+# pnpm's latest version instead, which then refuses to run on Node 20.
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 FROM base AS builder
 WORKDIR /app
