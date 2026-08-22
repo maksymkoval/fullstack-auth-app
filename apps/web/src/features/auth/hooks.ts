@@ -11,7 +11,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { authApi } from "./api";
 import { tokenStorage } from "../../lib/api";
-import type { AuthResult } from "./types";
+import type { AuthResult } from "@fullstack-auth-app/shared";
 
 // Cache keys collected in one place so we don't typo a string somewhere.
 export const authKeys = {

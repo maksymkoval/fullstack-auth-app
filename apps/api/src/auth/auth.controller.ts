@@ -1,10 +1,15 @@
-import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, UseGuards, UsePipes } from "@nestjs/common";
+import {
+  loginSchema,
+  registerSchema,
+  type LoginInput,
+  type RegisterInput,
+} from "@fullstack-auth-app/shared";
 import { AuthService, AuthResult } from "./auth.service";
-import { RegisterDto } from "./dto/register.dto";
-import { LoginDto } from "./dto/login.dto";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { CurrentUser } from "./decorators/current-user.decorator";
 import { UserEntity } from "../users/entities/user.entity";
+import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe";
 
 /**
  * Auth CONTROLLER layer. Again: only HTTP, no business logic.
@@ -15,12 +20,14 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post("register")
-  register(@Body() dto: RegisterDto): Promise<AuthResult> {
+  @UsePipes(new ZodValidationPipe(registerSchema))
+  register(@Body() dto: RegisterInput): Promise<AuthResult> {
     return this.authService.register(dto);
   }
 
   @Post("login")
-  login(@Body() dto: LoginDto): Promise<AuthResult> {
+  @UsePipes(new ZodValidationPipe(loginSchema))
+  login(@Body() dto: LoginInput): Promise<AuthResult> {
     return this.authService.login(dto);
   }
 

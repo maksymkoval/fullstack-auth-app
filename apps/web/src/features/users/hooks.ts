@@ -4,7 +4,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '../../lib/api';
-import type { User } from '../auth/types';
+import type { User } from '@fullstack-auth-app/shared';
 
 export const userKeys = {
   all: ['users'] as const,

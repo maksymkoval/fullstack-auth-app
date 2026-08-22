@@ -1,6 +1,6 @@
 /**
  * Types for server RESPONSES (what comes back from the backend).
- * Form input types (LoginInput / RegisterInput) live in schemas.ts,
+ * Form input types (LoginInput / RegisterInput) live in auth.ts,
  * since they're inferred from the validation schemas.
  */
 

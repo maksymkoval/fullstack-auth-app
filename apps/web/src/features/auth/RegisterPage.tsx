@@ -6,7 +6,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router-dom';
-import { registerSchema, type RegisterInput } from './schemas';
+import { registerSchema, type RegisterInput } from '@fullstack-auth-app/shared';
 import { useRegister } from './hooks';
 import { ApiError } from '../../lib/api';
 

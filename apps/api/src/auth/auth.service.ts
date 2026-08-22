@@ -5,10 +5,9 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import type { LoginInput, RegisterInput } from '@fullstack-auth-app/shared';
 import { UsersService } from '../users/users.service';
 import { UserEntity } from '../users/entities/user.entity';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
 import { JwtPayload } from './strategies/jwt.strategy';
 
 export interface AuthResult {
@@ -33,7 +32,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(dto: RegisterDto): Promise<AuthResult> {
+  async register(dto: RegisterInput): Promise<AuthResult> {
     const existing = await this.usersService.findByEmailWithHash(dto.email);
     if (existing) {
       throw new ConflictException('A user with this email already exists');
@@ -49,7 +48,7 @@ export class AuthService {
     return this.buildAuthResult(user);
   }
 
-  async login(dto: LoginDto): Promise<AuthResult> {
+  async login(dto: LoginInput): Promise<AuthResult> {
     const user = await this.usersService.findByEmailWithHash(dto.email);
 
     // Same message for "no such email" and "wrong password",

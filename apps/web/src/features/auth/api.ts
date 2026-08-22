@@ -4,8 +4,7 @@
  * are layered on top by React Query (see hooks.ts).
  */
 import { apiRequest } from '../../lib/api';
-import type { AuthResult, User } from './types';
-import type { LoginInput, RegisterInput } from './schemas';
+import type { AuthResult, User, LoginInput, RegisterInput } from '@fullstack-auth-app/shared';
 
 export const authApi = {
   register: (input: RegisterInput): Promise<AuthResult> =>
