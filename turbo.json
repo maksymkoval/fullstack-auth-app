@@ -3,7 +3,22 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**"],
+      // Turbo hides any env var not listed here from the task (so cache
+      // keys stay predictable) — VITE_/NEXT_PUBLIC_-style prefixes are
+      // let through automatically, but plain names like these aren't.
+      "env": [
+        "SENTRY_ORG",
+        "SENTRY_PROJECT_WEB",
+        "SENTRY_AUTH_TOKEN",
+        "VERCEL_GIT_COMMIT_SHA",
+        "RAILWAY_GIT_COMMIT_SHA",
+        "DATABASE_URL",
+        "JWT_SECRET",
+        "JWT_EXPIRES_IN",
+        "CORS_ORIGIN",
+        "PORT"
+      ]
     },
     "dev": {
       "cache": false,
