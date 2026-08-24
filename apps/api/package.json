@@ -38,13 +38,13 @@
   },
   "devDependencies": {
     "@fullstack-auth-app/config": "workspace:*",
-    "@nestjs/cli": "^10.4.5",
-    "@nestjs/schematics": "^10.1.4",
+    "@nestjs/cli": "^11.0.24",
+    "@nestjs/schematics": "^11.1.0",
     "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.0",
-    "@types/node": "^22.7.4",
+    "@types/node": "^26.2.0",
     "@types/passport-jwt": "^4.0.1",
-    "prisma": "^5.20.0"
+    "prisma": "^7.9.1"
   }
 }
