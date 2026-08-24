@@ -11,7 +11,7 @@ jobs:
     container:
       image: semgrep/semgrep
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # Scoped to our own rule on purpose: --config auto and the broad
       # registry packs (p/owasp-top-ten included) also pull in unrelated
       # supply-chain/CI config checks (pin every GitHub Action to a SHA,
