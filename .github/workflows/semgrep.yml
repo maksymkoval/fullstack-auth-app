@@ -12,4 +12,11 @@ jobs:
       image: semgrep/semgrep
     steps:
       - uses: actions/checkout@v4
-      - run: semgrep scan --config auto --config .semgrep.yml --error
+      # Scoped to our own rule on purpose: --config auto and the broad
+      # registry packs (p/owasp-top-ten included) also pull in unrelated
+      # supply-chain/CI config checks (pin every GitHub Action to a SHA,
+      # pnpm trust policy settings) — legitimate, but a separate, bigger
+      # undertaking than this gate is meant to block merges on. CodeQL
+      # covers broad app-code SAST; this rule targets what's specific to
+      # this stack (Prisma raw SQL).
+      - run: semgrep scan --config .semgrep.yml --error
