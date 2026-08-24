@@ -1,0 +1,13 @@
+rules:
+  - id: prisma-raw-sql-unsafe
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >
+      $queryRawUnsafe/$executeRawUnsafe skip Prisma's parameterization —
+      any interpolated value here is a SQL injection vector. Use
+      $queryRaw/$executeRaw with tagged templates instead, or build the
+      query with Prisma's normal query API.
+    patterns:
+      - pattern-either:
+          - pattern: $PRISMA.$queryRawUnsafe(...)
+          - pattern: $PRISMA.$executeRawUnsafe(...)

@@ -39,3 +39,8 @@ jobs:
 
       - name: Typecheck, lint, build
         run: pnpm exec turbo run typecheck lint build
+
+      - name: Audit production dependencies
+        # --prod skips devDependencies (e.g. Vite's dev-server-only CVEs) —
+        # those never ship to production, so they'd just be noise here.
+        run: pnpm audit --audit-level=high --prod

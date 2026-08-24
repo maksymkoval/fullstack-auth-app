@@ -1,0 +1,17 @@
+version: 2
+updates:
+  # Single entry for the whole pnpm workspace — Dependabot resolves the
+  # root pnpm-lock.yaml and opens PRs scoped to whichever package.json
+  # actually needs the bump.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      dev-dependencies:
+        dependency-type: development
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
