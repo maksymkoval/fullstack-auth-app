@@ -126,11 +126,13 @@ understand the framework.
 
 ## 4. Important patterns in this codebase
 
-### DTO — the contract for incoming data
-`register.dto.ts`, `login.dto.ts` describe the shape of the data plus its
-validation rules (`@IsEmail`, `@MinLength`). The global `ValidationPipe` (see
-`main.ts`) checks them **automatically**, before the controller ever runs.
-Invalid data → `400`, with zero lines of manual checking.
+### Validation — a shared Zod schema, not a DTO class
+Request bodies are validated against the Zod schemas in
+`packages/shared/src` (`loginSchema`, `registerSchema`), applied per-route via
+`ZodValidationPipe` (see `apps/api/src/common/pipes/`). The same schema also
+drives the frontend form via `zodResolver`. Invalid data → `400`, and there's
+exactly one place the validation rule is written — not a backend DTO plus a
+separately-maintained frontend copy.
 
 ### Entity vs. the DB model
 `UserEntity` is what's safe to hand back to the client. The DB model `User`
@@ -144,9 +146,10 @@ the other. **Rule: the password hash never leaves the backend.**
 *applying* that check (the Guard).
 
 ### Strategy — how exactly to check
-`JwtStrategy` pulls the token out of the header, verifies its signature, and
-returns the user. Nest puts whatever it returns into `request.user`, which the
-`@CurrentUser` decorator then reads.
+`JwtStrategy` pulls the token out of the httpOnly `accessToken` cookie
+(falling back to an `Authorization` header for non-browser API clients),
+verifies its signature, and returns the user. Nest puts whatever it returns
+into `request.user`, which the `@CurrentUser` decorator then reads.
 
 ---
 
@@ -157,11 +160,10 @@ The frontend is organized **around features**, not around technical file types.
 ```
 src/
 ├── lib/            → Infrastructure shared across the whole app
-│   └── api.ts         The HTTP client (the only place with fetch and the token)
+│   └── api.ts         The HTTP client (the only place with fetch())
 ├── features/       → Code grouped by feature
 │   └── auth/         Everything about authentication, in one place:
 │       ├── api.ts        auth endpoint calls
-│       ├── types.ts      types (mirroring the backend's contracts)
 │       ├── hooks.ts      React Query hooks (useLogin, useMe, useRegister…)
 │       ├── LoginPage.tsx
 │       └── RegisterPage.tsx
@@ -169,6 +171,11 @@ src/
 ├── pages/          → Screen-level pages (DashboardPage)
 └── App.tsx         → Routing (which URL maps to which component)
 ```
+
+Request/response types (`User`, `LoginInput`, `RegisterInput`) aren't in
+`features/auth` at all — they live in `packages/shared` (a sibling package in
+this pnpm/Turborepo monorepo, alongside `apps/web` and `apps/api`), so both
+apps import the exact same types instead of keeping two copies in sync.
 
 **Why feature-based instead of "all components in /components, all hooks in /hooks"?**
 When you're working on authentication, all the code you need is in one folder,
@@ -204,19 +211,23 @@ handles caching, refetching, and invalidation for it like any other server data.
 1. The user types in email + password → LoginPage
 2. LoginPage calls useLogin().mutate()          [features/auth/hooks.ts]
 3. The mutation calls authApi.login()           [features/auth/api.ts]
-4. authApi goes through apiRequest → fetch       [lib/api.ts]
+4. authApi goes through apiRequest → fetch, with credentials: 'include'
+   so the browser will accept a cookie back      [lib/api.ts]
    ─────────────── network ───────────────►
 5. POST /auth/login is received by AuthController  [backend: controller]
 6. AuthService checks the password with bcrypt.compare  [backend: service]
 7. UsersRepository fetches the user from the DB          [backend: repository]
-8. AuthService signs a JWT and returns token + user
+8. AuthController sets the JWT as an httpOnly, Secure cookie and
+   returns only the user in the JSON body (never the token itself)
    ◄────────────── network ────────────────
-9. onSuccess stores the token in localStorage    [lib/api.ts, tokenStorage]
-   and puts the user straight into the React Query cache
+9. onSuccess puts the user straight into the React Query cache — there's
+   nothing to store client-side, the cookie is invisible to JS by design
 10. ProtectedRoute sees a user → allows access to DashboardPage
-11. DashboardPage calls GET /users; apiRequest
-    automatically attaches "Authorization: Bearer <token>"
-12. On the backend, JwtAuthGuard + JwtStrategy verify the token → return the data
+11. DashboardPage calls GET /users; apiRequest again sends
+    credentials: 'include' — the browser attaches the cookie automatically,
+    no header for the frontend to manage
+12. On the backend, JwtAuthGuard + JwtStrategy read the cookie and verify
+    the token → return the data
 ```
 
 Every numbered step is one clear responsibility in one file. That's what clean
