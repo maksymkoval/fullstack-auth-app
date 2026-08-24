@@ -3,18 +3,10 @@
  * fetch and the backend's base URL. Components never call fetch directly,
  * they go through this layer instead (the frontend's equivalent of a repository).
  *
- * The payoff: one way to attach the token, one way to handle errors,
- * and swapping in axios or adding logging means touching a single file.
+ * The payoff: one place to handle errors and credentials, and swapping in
+ * axios or adding logging means touching a single file.
  */
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
-
-const TOKEN_KEY = 'accessToken';
-
-export const tokenStorage = {
-  get: (): string | null => localStorage.getItem(TOKEN_KEY),
-  set: (token: string): void => localStorage.setItem(TOKEN_KEY, token),
-  clear: (): void => localStorage.removeItem(TOKEN_KEY),
-};
 
 /** An error carrying the API's message (so it can be shown to the user). */
 export class ApiError extends Error {
@@ -36,15 +28,15 @@ export async function apiRequest<T>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const token = tokenStorage.get();
-
   const response = await fetch(`${BASE_URL}${path}`, {
     method: options.method ?? 'GET',
     headers: {
       'Content-Type': 'application/json',
-      // Automatically attach the JWT, if there is one.
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
+    // The access token lives in an httpOnly cookie now — JS never sees it,
+    // so there's nothing to attach manually. `include` is what makes the
+    // browser send that cookie on a cross-origin request in the first place.
+    credentials: 'include',
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
 

@@ -10,8 +10,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { authApi } from "./api";
-import { tokenStorage } from "../../lib/api";
-import type { AuthResult } from "@fullstack-auth-app/shared";
+import type { User } from "@fullstack-auth-app/shared";
 
 // Cache keys collected in one place so we don't typo a string somewhere.
 export const authKeys = {
@@ -19,14 +18,14 @@ export const authKeys = {
 };
 
 /**
- * "Who am I?" — the main query. Only runs if a token exists.
- * Its result (user) is the source of truth for the whole app.
+ * "Who am I?" — the main query. The access token is an httpOnly cookie, so
+ * the frontend can't check for it before asking; it always fires, and a
+ * missing/invalid cookie just comes back as a 401 (no user).
  */
 export function useMe() {
   return useQuery({
     queryKey: authKeys.me,
     queryFn: authApi.me,
-    enabled: !!tokenStorage.get(), // no token — don't bother asking the backend
     retry: false, // no point retrying a 401
     staleTime: Infinity, // "who am I" data doesn't go stale on its own
   });
@@ -37,9 +36,8 @@ export function useLogin() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: authApi.login,
-    onSuccess: (result: AuthResult) => {
-      tokenStorage.set(result.accessToken);
-      queryClient.setQueryData(authKeys.me, result.user);
+    onSuccess: (user: User) => {
+      queryClient.setQueryData(authKeys.me, user);
     },
   });
 }
@@ -49,19 +47,21 @@ export function useRegister() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: authApi.register,
-    onSuccess: (result: AuthResult) => {
-      tokenStorage.set(result.accessToken);
-      queryClient.setQueryData(authKeys.me, result.user);
+    onSuccess: (user: User) => {
+      queryClient.setQueryData(authKeys.me, user);
     },
   });
 }
 
-/** Logout: clear the token, clear the whole React Query cache, and navigate to /login. */
+/**
+ * Logout: the cookie is httpOnly, so JS can't clear it directly — has to
+ * ask the server to do it via Set-Cookie with an expired maxAge.
+ */
 export function useLogout() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  return () => {
-    tokenStorage.clear();
+  return async () => {
+    await authApi.logout();
     queryClient.clear();
     navigate("/login");
   };

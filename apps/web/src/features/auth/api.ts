@@ -4,14 +4,19 @@
  * are layered on top by React Query (see hooks.ts).
  */
 import { apiRequest } from '../../lib/api';
-import type { AuthResult, User, LoginInput, RegisterInput } from '@fullstack-auth-app/shared';
+import type { User, LoginInput, RegisterInput } from '@fullstack-auth-app/shared';
 
 export const authApi = {
-  register: (input: RegisterInput): Promise<AuthResult> =>
-    apiRequest<AuthResult>('/auth/register', { method: 'POST', body: input }),
+  // Server sets the access token as an httpOnly cookie on these two —
+  // the JSON body is just the user, there's no token for the frontend to hold.
+  register: (input: RegisterInput): Promise<User> =>
+    apiRequest<User>('/auth/register', { method: 'POST', body: input }),
 
-  login: (input: LoginInput): Promise<AuthResult> =>
-    apiRequest<AuthResult>('/auth/login', { method: 'POST', body: input }),
+  login: (input: LoginInput): Promise<User> =>
+    apiRequest<User>('/auth/login', { method: 'POST', body: input }),
+
+  logout: (): Promise<{ success: true }> =>
+    apiRequest<{ success: true }>('/auth/logout', { method: 'POST' }),
 
   me: (): Promise<User> => apiRequest<User>('/auth/me'),
 };

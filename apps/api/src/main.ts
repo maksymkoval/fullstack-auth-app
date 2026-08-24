@@ -3,6 +3,8 @@ import './instrument';
 import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { SentryExceptionFilter } from './common/filters/sentry-exception.filter';
 
@@ -20,6 +22,10 @@ async function bootstrap() {
 
   app.useLogger(app.get(Logger));
   app.useGlobalFilters(new SentryExceptionFilter(app.get(HttpAdapterHost)));
+
+  app.use(helmet());
+  // Needed to read the httpOnly accessToken cookie in JwtStrategy.
+  app.use(cookieParser());
 
   // Allow the frontend to call the API from a different origin.
   app.enableCors({
