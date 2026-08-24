@@ -23,13 +23,16 @@ async function bootstrap() {
   app.useLogger(app.get(Logger));
   app.useGlobalFilters(new SentryExceptionFilter(app.get(HttpAdapterHost)));
 
-  // Railway sits in front of the app as a reverse proxy. Without this,
-  // Express reads req.ip from the raw socket peer — which is one of
-  // Railway's edge nodes, not the actual client, and can differ between
-  // requests from the *same* client. ThrottlerGuard keys its rate-limit
-  // buckets off req.ip, so that was silently splitting one client's
-  // requests across multiple buckets instead of counting them together.
-  app.getHttpAdapter().getInstance().set('trust proxy', 1);
+  // Railway sits in front of the app as a reverse proxy — possibly more
+  // than one hop (edge + internal load balancer). Without this, Express
+  // reads req.ip from the raw socket peer, which is one of Railway's own
+  // nodes, not the actual client, and can differ between requests from
+  // the *same* client. `true` trusts the whole X-Forwarded-For chain and
+  // takes the leftmost (original client) IP, rather than guessing a
+  // specific hop count that might be wrong. ThrottlerGuard keys its
+  // rate-limit buckets off req.ip, so an unstable value was silently
+  // splitting one client's requests across multiple buckets.
+  app.getHttpAdapter().getInstance().set('trust proxy', true);
 
   app.use(helmet());
   // Needed to read the httpOnly accessToken cookie in JwtStrategy.

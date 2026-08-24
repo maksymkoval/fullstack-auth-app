@@ -7,12 +7,14 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { validateEnv } from './env.validation';
+import { DebugIpController } from './debug-ip.controller';
 
 /**
  * Root module. It doesn't do anything itself — it just "glues"
  * the feature modules together. Each module encapsulates its own domain slice.
  */
 @Module({
+  controllers: [DebugIpController],
   imports: [
     // Reads .env, makes ConfigService available everywhere (global: true),
     // and validates the result — an invalid/missing var fails at boot
