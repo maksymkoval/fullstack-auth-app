@@ -44,3 +44,57 @@ jobs:
         # --prod skips devDependencies (e.g. Vite's dev-server-only CVEs) —
         # those never ship to production, so they'd just be noise here.
         run: pnpm audit --audit-level=high --prod
+
+  e2e:
+    needs: ci
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+          POSTGRES_DB: app
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://app:app@localhost:5432/app
+      JWT_SECRET: ci-only-secret-not-used-anywhere-real
+      CORS_ORIGIN: http://localhost:5173
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter api exec prisma migrate deploy
+      - run: pnpm --filter api exec prisma generate
+      # apps/api and apps/web both import @fullstack-auth-app/shared as a
+      # workspace package — its dist has to exist before their dev servers
+      # (which Playwright launches) can resolve it.
+      - run: pnpm exec turbo run build --filter=@fullstack-auth-app/shared
+
+      - name: Install Playwright browsers
+        run: pnpm --filter web exec playwright install --with-deps chromium
+
+      - name: Run e2e + accessibility tests
+        run: pnpm --filter web test
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7

@@ -7,3 +7,7 @@ build/
 apps/web/dist/
 apps/api/dist/
 .turbo/
+apps/web/test-results/
+apps/web/playwright-report/
+apps/web/blob-report/
+apps/web/playwright/.cache/

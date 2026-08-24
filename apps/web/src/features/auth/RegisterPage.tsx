@@ -40,47 +40,70 @@ export function RegisterPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-slate-700">Name</label>
+          <label htmlFor="register-name" className="text-sm font-medium text-slate-700">
+            Name
+          </label>
           <input
+            id="register-name"
             type="text"
             autoComplete="name"
+            aria-invalid={!!errors.name}
+            aria-describedby={errors.name ? 'register-name-error' : undefined}
             {...register('name')}
             className={inputClass}
           />
           {errors.name && (
-            <p className="text-sm text-red-600">{errors.name.message}</p>
+            <p id="register-name-error" role="alert" className="text-sm text-red-600">
+              {errors.name.message}
+            </p>
           )}
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-slate-700">Email</label>
+          <label htmlFor="register-email" className="text-sm font-medium text-slate-700">
+            Email
+          </label>
           <input
+            id="register-email"
             type="email"
             autoComplete="email"
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? 'register-email-error' : undefined}
             {...register('email')}
             className={inputClass}
           />
           {errors.email && (
-            <p className="text-sm text-red-600">{errors.email.message}</p>
+            <p id="register-email-error" role="alert" className="text-sm text-red-600">
+              {errors.email.message}
+            </p>
           )}
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-slate-700">
+          <label htmlFor="register-password" className="text-sm font-medium text-slate-700">
             Password (min. 6 characters)
           </label>
           <input
+            id="register-password"
             type="password"
             autoComplete="new-password"
+            aria-invalid={!!errors.password}
+            aria-describedby={errors.password ? 'register-password-error' : undefined}
             {...register('password')}
             className={inputClass}
           />
           {errors.password && (
-            <p className="text-sm text-red-600">{errors.password.message}</p>
+            <p id="register-password-error" role="alert" className="text-sm text-red-600">
+              {errors.password.message}
+            </p>
           )}
         </div>
 
-        {serverError && <p className="text-sm text-red-600">{serverError}</p>}
+        {serverError && (
+          <p role="alert" className="text-sm text-red-600">
+            {serverError}
+          </p>
+        )}
 
         <button
           type="submit"
@@ -93,7 +116,7 @@ export function RegisterPage() {
 
       <p className="mt-4 text-sm text-slate-500">
         Already have an account?{' '}
-        <Link to="/login" className="text-indigo-600 hover:underline">
+        <Link to="/login" className="text-indigo-600 underline hover:text-indigo-700">
           Log in
         </Link>
       </p>

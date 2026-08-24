@@ -38,32 +38,50 @@ export function LoginPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-slate-700">Email</label>
+          <label htmlFor="login-email" className="text-sm font-medium text-slate-700">
+            Email
+          </label>
           <input
+            id="login-email"
             type="email"
             autoComplete="email"
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? 'login-email-error' : undefined}
             {...register('email')}
             className="rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
           />
           {errors.email && (
-            <p className="text-sm text-red-600">{errors.email.message}</p>
+            <p id="login-email-error" role="alert" className="text-sm text-red-600">
+              {errors.email.message}
+            </p>
           )}
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-slate-700">Password</label>
+          <label htmlFor="login-password" className="text-sm font-medium text-slate-700">
+            Password
+          </label>
           <input
+            id="login-password"
             type="password"
             autoComplete="current-password"
+            aria-invalid={!!errors.password}
+            aria-describedby={errors.password ? 'login-password-error' : undefined}
             {...register('password')}
             className="rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
           />
           {errors.password && (
-            <p className="text-sm text-red-600">{errors.password.message}</p>
+            <p id="login-password-error" role="alert" className="text-sm text-red-600">
+              {errors.password.message}
+            </p>
           )}
         </div>
 
-        {serverError && <p className="text-sm text-red-600">{serverError}</p>}
+        {serverError && (
+          <p role="alert" className="text-sm text-red-600">
+            {serverError}
+          </p>
+        )}
 
         <button
           type="submit"
@@ -76,7 +94,7 @@ export function LoginPage() {
 
       <p className="mt-4 text-sm text-slate-500">
         Don&apos;t have an account?{' '}
-        <Link to="/register" className="text-indigo-600 hover:underline">
+        <Link to="/register" className="text-indigo-600 underline hover:text-indigo-700">
           Register
         </Link>
       </p>
