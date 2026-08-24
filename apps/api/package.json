@@ -20,7 +20,7 @@
     "@nestjs/core": "^10.4.4",
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/passport": "^10.0.3",
-    "@nestjs/platform-express": "^10.4.4",
+    "@nestjs/platform-express": "^11.2.1",
     "@nestjs/throttler": "^6.5.0",
     "@prisma/client": "^5.20.0",
     "@sentry/node": "^10.70.0",
